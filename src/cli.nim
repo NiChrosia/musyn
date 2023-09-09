@@ -45,13 +45,15 @@ const CMD_HELP_SRC_NEW* = """
 NAME
        musyn-src-new - Create a new music source in the repository
 SYNOPSIS
-       musyn src new <name> <type> <args>
+       musyn src new <name> <type>
 DESCRIPTION
        This command creates a new music source named <name>,
-       with type <type> and arguments <args>. Typically, the arguments
-       are a URL pointing to, say, a playlist, or a YouTube channel.
+       with type <type>. Arguments can be configured with "musyn src mod",
+       and generally require at least one or two changes before a source
+       can be used.
 
-See 'musyn help source-types' for more information about the types of sources available.
+See 'musyn help #source-types' for more information about the types of sources available,
+and 'musyn help src-mod' for information about how to use "musyn src mod".
 """
 
 const CMD_HELP_SRC_MOD* = """
@@ -63,7 +65,7 @@ DESCRIPTION
        This command changes the setting named <key> to <value>
        in music source <name>.
 
-See 'musyn help source-settings' for more information about available source settings.
+See 'musyn help #source-settings' for more information about available source settings.
 """
 
 const CMD_HELP_SRC_DEL* = """
@@ -97,13 +99,13 @@ DESCRIPTION
 """
 
 const CONCEPT_HELP_SOURCE_TYPES* = """
-A source type is an object that converts a user-provided argument (e.g., a URL)
+A source type is an object that converts user-provided settings (e.g., a playlist id)
 and queried information online from APIs into usable statuses and syncable files.
 
 Here's the full list of available source types:
 
-NAME           ARGUMENT       STATUS SUPPORTED   SYNC SUPPORTED   FILE TYPE
-yt | youtube   playlist URL   yes                yes              any audio file
+NAME           ARGUMENT      STATUS SUPPORTED   SYNC SUPPORTED   FILE TYPE
+yt | youtube   playlist id   yes                yes              any audio file
 """
 
 const CONCEPT_HELP_SOURCE_SETTINGS* = """
@@ -111,9 +113,9 @@ Source settings are what control the behavior of sources.
 
 Here's the list:
 
-NAME           KEY         DESCRIPTION                                         REQUIREMENTS
-yt | youtube   url         the url used to download the audio of videos from   must be a valid playlist or channel url
-               file_type   the audio file type of the download files           must be a valid audio file extension
+NAME           KEY           DESCRIPTION                                         REQUIREMENTS
+yt | youtube   playlist_id   the url used to download the audio of videos from   must be a valid playlist id
+               file_type     the audio file type of the download files           must be a valid audio file extension
 """
 
 let help* = toTable({
