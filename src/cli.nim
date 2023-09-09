@@ -15,7 +15,7 @@ manage local files
    sync      Synchronize local files to online sources
 
 See 'musyn help <command>' for help on any specific command,
-or 'musyn help <concept>' for help with any musyn-specific concept.
+or 'musyn help #<concept>' for help with any musyn-specific concept.
 """
 
 const CMD_HELP_INIT* = """
@@ -102,8 +102,8 @@ and queried information online from APIs into usable statuses and syncable files
 
 Here's the full list of available source types:
 
-NAME           ARGUMENT                    STATUS SUPPORTED   SYNC SUPPORTED   FILE TYPE
-yt | youtube   <playlist or channel URL>   yes                yes              mp3
+NAME           ARGUMENT       STATUS SUPPORTED   SYNC SUPPORTED   FILE TYPE
+yt | youtube   playlist URL   yes                yes              any audio file
 """
 
 const CONCEPT_HELP_SOURCE_SETTINGS* = """
@@ -111,8 +111,9 @@ Source settings are what control the behavior of sources.
 
 Here's the list:
 
-NAME           KEY   DESCRIPTION                                         REQUIREMENTS
-yt | youtube   url   the url used to download the audio of videos from   must be a valid playlist or channel url
+NAME           KEY         DESCRIPTION                                         REQUIREMENTS
+yt | youtube   url         the url used to download the audio of videos from   must be a valid playlist or channel url
+               file_type   the audio file type of the download files           must be a valid audio file extension
 """
 
 let help* = toTable({
@@ -125,6 +126,6 @@ let help* = toTable({
     "status": CMD_HELP_STATUS,
     "sync": CMD_HELP_SYNC,
 
-    "source-types": CONCEPT_HELP_SOURCE_TYPES,
-    "source-settings": CONCEPT_HELP_SOURCE_SETTINGS,
+    "#source-types": CONCEPT_HELP_SOURCE_TYPES,
+    "#source-settings": CONCEPT_HELP_SOURCE_SETTINGS,
 })
