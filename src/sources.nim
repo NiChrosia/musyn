@@ -1,13 +1,16 @@
-import std/[sugar, tables, json, strformat, httpclient, hashes]
+import std/[sugar, tables, json, strformat, httpclient, sets]
 
 type
     Status* = object
         outdated*: bool
-        message*: string
+
+        additions*: HashSet[string]
+        removals*: HashSet[string]
 
     Source* = object
         settings*: Table[string, string]
-        hash*: Hash
+        titles*: HashSet[string]
+        ids*: HashSet[string]
 
         status*: (var Source) -> Status
         sync*: (var Source) -> void
@@ -15,6 +18,11 @@ type
 const INVIDIOUS_INSTANCE = "invidious.io.lol"
 
 let client = newHttpClient()
+
+proc statusOf*(oldTitles, newTitles: HashSet[string]): Status =
+    result.outdated = oldTitles != newTitles
+    result.additions = newTitles - oldTitles
+    result.removals = oldTitles - newTitles
 
 proc youtubeSource*(): Source =
     proc queryStatus(source: var Source): Status =
@@ -24,21 +32,33 @@ proc youtubeSource*(): Source =
         let raw = client.getContent(apiUrl)
         let json = parseJson(raw)
 
-        var ids: seq[string]
+        var titles = initHashSet[string]()
 
         for video in json["videos"].getElems():
-            ids.add(video["videoId"].getStr())
+            titles.incl(video["title"].getStr())
 
-        if source.hash == 0:
-            source.hash = hash(ids)
-            
-            let message = "No local files - first synchronization."
-            return Status(outdated: true, message: message)
+        result = statusOf(source.titles, titles)
+        source.titles = titles
 
-        if hash(ids) != source.hash:
-            let message = "Some change has occurred - later functionality will be implemented to show precisely what has changed."
-            return Status(outdated: true, message: message)
+    proc sync(source: var Source) =
+        let playlistId = source.settings["playlist_id"]
 
-        return Status(outdated: false)
+        let apiUrl = fmt"https://{INVIDIOUS_INSTANCE}/api/v1/playlists/{playlistId}"
+        let raw = client.getContent(apiUrl)
+        let json = parseJson(raw)
+
+        var ids = initHashSet[string]()
+
+        for video in json["videos"].getElems():
+            ids.incl(video["ids"].getStr())
+
+        let idStatus = statusOf(source.ids, ids)
+
+        for addition in idStatus.additions:
+            echo addition
+
+    result.settings = initTable[string, string]()
+    result.titles = initHashSet[string]()
 
     result.status = queryStatus
+    result.sync = sync
