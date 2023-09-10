@@ -19,8 +19,6 @@ type
 
 const INVIDIOUS_INSTANCE = "invidious.io.lol"
 
-let client = newHttpClient()
-
 # type functions
 proc hash*(song: Song): Hash =
     return hash(song.title) !& hash(song.id) !& hash(song.duration)
@@ -33,6 +31,8 @@ proc diffOf*(oldSongs, newSongs: HashSet[Song]): Diff =
 # source-type specific networking functions
 # - youtube
 proc ytPlaylistSongs*(id: string): HashSet[Song] =
+    let client = newHttpClient()
+
     let url = fmt"https://{INVIDIOUS_INSTANCE}/api/v1/playlists/{id}"
     let raw = client.getContent(url)
     let json = parseJson(raw)
@@ -44,7 +44,11 @@ proc ytPlaylistSongs*(id: string): HashSet[Song] =
 
         result.incl(Song(title: title, id: id, duration: duration))
 
+    client.close()
+
 proc ytChannelSongs*(id: string, continuation: string = ""): HashSet[Song] =
+    let client = newHttpClient()
+
     var url = fmt"https://{INVIDIOUS_INSTANCE}/api/v1/channels/{id}/videos" 
 
     if continuation != "":
@@ -63,6 +67,8 @@ proc ytChannelSongs*(id: string, continuation: string = ""): HashSet[Song] =
     if json.hasKey("continuation"):
         for song in ytChannelSongs(id, json["continuation"].getStr()):
             result.incl(song)
+
+    client.close()
 
 proc ytStatus*(source: Source): Diff =
     let idType = source.settings["id_type"]
