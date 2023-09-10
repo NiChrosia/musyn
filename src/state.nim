@@ -1,3 +1,4 @@
 import sources
+import std/[tables]
 
-var stateSources*: seq[Source]
+var stateSources*: Table[string, Source]

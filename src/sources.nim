@@ -9,13 +9,14 @@ type
         duration*: int # seconds
 
     Diff* = object
-        additions, deletions: HashSet[Song]
+        additions*, deletions*: HashSet[Song]
 
     Source* = object
+        kind*: string
         settings*: Table[string, string]
         songs*: HashSet[Song]
 
-        diff*: (var Source) -> Diff
+        diff*: (Source) -> Diff
 
 const INVIDIOUS_INSTANCE = "invidious.io.lol"
 
@@ -64,17 +65,20 @@ proc ytChannelSongs*(id: string, continuation: string = ""): HashSet[Song] =
         for song in ytChannelSongs(id, json["continuation"].getStr()):
             result.incl(song)
 
+proc ytStatus*(source: Source): Diff =
+    let idType = source.settings["id_type"]
+
+    let newSongs = case idType
+    of "playlist":
+        ytPlaylistSongs(source.settings["id"])
+    of "channel":
+        ytChannelSongs(source.settings["id"])
+    else:
+        raise newException(InvalidIdTypeException, fmt"Unrecognized id type '{idType}'!")
+
+    return diffOf(source.songs, newSongs)
+
 # sources
 proc ytSource*(): Source =
-    result.diff = proc(source: var Source): Diff =
-        let idType = source.settings["id_type"]
-
-        let newSongs = case idType
-        of "playlist":
-            ytPlaylistSongs(source.settings["id"])
-        of "channel":
-            ytChannelSongs(source.settings["id"])
-        else:
-            raise newException(InvalidIdTypeException, fmt"Unrecognized id type '{idType}'!")
-
-        return diffOf(source.songs, newSongs)
+    result.kind = "youtube"
+    result.diff = ytStatus
