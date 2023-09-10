@@ -1,4 +1,4 @@
-import cli, help, serialization, sources, state
+import cli, help, serialization, sources, state, log
 import std/[tables, strformat, sets, terminal, os, sequtils]
 
 proc assertArgumentCount(c: int, parts: seq[string]): bool =
@@ -213,11 +213,13 @@ proc sync(parts, options: seq[string]) =
         var i = 1
 
         for song in diff.additions:
-            stdout.styledWriteLine fgBlue, fmt"({i}/{diff.additions.len}) {song.title}"
+            log.info("({i}/{diff.additions.len}) {song.title}")
 
             let command = fmt"yt-dlp 'https://www.youtube.com/watch?v={song.id}' --extract-audio --audio-format {fileType} -o '{name}/{song.title}.{fileType}'"
             if execShellCmd(command) != 0:
-                echo "yt-dlp command failed! aborting and resetting changes to index!"
+                log.debug(fmt"faulty yt-dlp command: {command}")
+
+                log.error("yt-dlp command failed! aborting and resetting changes to index!")
                 stateSources[name].songs = stateSources[name].songs - diff.additions
 
                 serialization.write()

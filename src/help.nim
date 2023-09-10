@@ -1,7 +1,7 @@
 import std/[tables]
 
 const CMD_HELP_ROOT = """
-usage: musyn [-v | --version] [-h | --help]
+usage: musyn [-v | --version] [-h | --help] [-d | --debug]
        <command> [<args>]
 
 Available commands:

@@ -1,3 +1,4 @@
+import state
 import std/[sugar, tables, strformat]
 
 type
@@ -28,5 +29,8 @@ proc process*(parts: seq[string], commands: Table[string, Command]) =
             options.add(part)
         else:
             filteredSubParts.add(part)
+
+    if "-d" in options or "--debug" in options:
+        logLevel = llDebug
 
     commandProc(filteredSubParts, options)
