@@ -7,10 +7,11 @@ usage: musyn [-v | --version] [-h | --help]
 Available commands:
 
 manage a working area
-   init      Create an empty repository
-   src-new   Create a music source
-   src-mod   Change the settings of a source
-   src-del   Delete a source
+   init          Create an empty repository
+   src-new       Create a music source
+   src-mod       Change the settings of a source
+   src-del       Delete a source
+   src-recover   Recover the state of a source from a pre-existing folder
 
 manage local files
    status    Check for any updates in music sources
@@ -62,6 +63,15 @@ SYNOPSIS
 DESCRIPTION
        This command deletes the music source named <name> in the repository."""
 
+const CMD_HELP_SRC_RECOVER = """
+NAME
+       musyn-src-recover - Recover the song index for a source
+SYNOPSIS
+       musyn src-recover <name>
+DESCRIPTION
+       This command rebuilds the song index by comparing it against the files in the
+       folder with the same name."""
+
 const CMD_HELP_STATUS = """
 NAME
        musyn-status - Check the status of music sources in the repository
@@ -106,6 +116,7 @@ let help* = toTable({
     "src-new": CMD_HELP_SRC_NEW,
     "src-mod": CMD_HELP_SRC_MOD,
     "src-del": CMD_HELP_SRC_DEL,
+    "src-recover": CMD_HELP_SRC_RECOVER,
     "status": CMD_HELP_STATUS,
     "sync": CMD_HELP_SYNC,
 
