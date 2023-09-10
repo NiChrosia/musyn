@@ -223,9 +223,7 @@ proc sync(parts, options: seq[string]) =
             let command = fmt"yt-dlp 'https://www.youtube.com/watch?v={song.id}' --extract-audio --audio-format {fileType} -o '{sanitizedName}/{sanitizedTitle}.{fileType}'"
             if execShellCmd(command) != 0:
                 log.debug(fmt"faulty yt-dlp command: {command}")
-
-                log.error("yt-dlp command failed! aborting and resetting changes to index!")
-                stateSources[name].songs = stateSources[name].songs - diff.additions
+                log.error("yt-dlp command failed! exiting...")
 
                 serialization.write()
                 return
