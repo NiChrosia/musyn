@@ -1,5 +1,5 @@
 import cli, help, serialization, sources, state, log
-import std/[tables, strformat, sets, terminal, os, sequtils]
+import std/[tables, strformat, sets, terminal, os, sequtils, strutils]
 
 proc assertArgumentCount(c: int, parts: seq[string]): bool =
     if parts.len != c:
@@ -119,22 +119,24 @@ proc srcRecover(parts, options: seq[string]) =
     var fileType = ""
 
     if not dirExists(name):
-        echo "cannot recover from nonexistent directory!"
+        log.error("cannot recover from nonexistent directory!")
         return
 
     for (kind, path) in walkDir(name):
         if kind != pcFile:
             continue
 
-        let (_, title, ext) = splitFile(path)
+        var (_, title, ext) = splitFile(path)
+        ext = ext[1 .. ext.high]
+
         titles.incl(title)
 
         if fileType != ext and fileType != "":
-            echo "inconsistent song file types! cannot accurately recover unless song file types are all the same!"
+            log.error(fmt"inconsistent song file types (expected '{fileType}' but found '{ext}')! cannot accurately recover unless song file types are all the same!")
             return
 
         # only take the xyz part of .xyz
-        fileType = ext[1 .. ext.high]
+        fileType = ext
 
     if titles.len == 0:
         echo "directory empty, aborting..."
@@ -213,9 +215,12 @@ proc sync(parts, options: seq[string]) =
         var i = 1
 
         for song in diff.additions:
-            log.info("({i}/{diff.additions.len}) {song.title}")
+            log.info(fmt"({i}/{diff.additions.len}) {song.title}")
 
-            let command = fmt"yt-dlp 'https://www.youtube.com/watch?v={song.id}' --extract-audio --audio-format {fileType} -o '{name}/{song.title}.{fileType}'"
+            let sanitizedName = name.replace("'", "'\"'\"'")
+            let sanitizedTitle = song.title.replace("'", "'\"'\"'")
+
+            let command = fmt"yt-dlp 'https://www.youtube.com/watch?v={song.id}' --extract-audio --audio-format {fileType} -o '{sanitizedName}/{sanitizedTitle}.{fileType}'"
             if execShellCmd(command) != 0:
                 log.debug(fmt"faulty yt-dlp command: {command}")
 

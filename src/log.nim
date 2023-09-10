@@ -1,17 +1,20 @@
 import state
 import std/[terminal]
 
+proc writePrefix(letter: char, color: ForegroundColor) =
+    stdout.styledWrite color, "[", $letter, "] "
+
 proc info*(message: string) =
-    stdout.styledWrite fgBlue, "[I]"
+    writePrefix('I', fgBlue)
     stdout.writeLine message
 
 proc debug*(message: string) =
     if logLevel != llDebug:
         return
 
-    stdout.styledWrite fgGreen, "[D]"
+    writePrefix('D', fgGreen)
     stdout.writeLine message
 
 proc error*(message: string) =
-    stdout.styledWrite fgRed, "[E]"
+    writePrefix('E', fgRed)
     stdout.writeLine message
