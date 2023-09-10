@@ -70,7 +70,7 @@ const CMD_HELP_SRC_RECOVER = """
 NAME
        musyn-src-recover - Recover the song index for a source
 SYNOPSIS
-       musyn src-recover <name> <name> ...
+       musyn src-recover [<name> <name> ...]
 DESCRIPTION
        This command rebuilds the song index by comparing it against the files in the
        folders with the same name. If no names are given, all sources will be tried.
@@ -91,7 +91,7 @@ const CMD_HELP_SYNC = """
 NAME
        musyn-sync - Synchronize online files to local files
 SYNOPSIS
-       musyn sync [--skip] <name> <name> ...
+       musyn sync [--skip] [<name> <name> ...]
 DESCRIPTION
        This command can either synchronize all sources, or a specific subset
        specified after the command.

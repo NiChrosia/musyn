@@ -166,7 +166,7 @@ proc srcRecover(parts, options: seq[string]) =
         let diff = source.diff(source)
 
         for song in diff.additions:
-            if song.title in titles:
+            if song.title.replace("/", "_") in titles:
                 stateSources[name].songs.incl(song)
 
         serialization.write()
@@ -201,7 +201,21 @@ proc sync(parts, options: seq[string]) =
     if not tryReadState() or execShellCmd("yt-dlp --help") != 0:
         return
 
-    for name in stateSources.keys:
+    var names: seq[string]
+
+    if parts.len == 0:
+        for name in stateSources.keys:
+            names.add(name)
+    else:
+        names = parts
+
+    for name in names:
+        try:
+            discard stateSources[name]
+        except:
+            log.error(fmt"invalid source name '{name}'!")
+            return
+
         let source = stateSources[name]
 
         if ["id", "id_type", "file_type"].anyIt(not source.settings.hasKey(it)):
@@ -226,10 +240,10 @@ proc sync(parts, options: seq[string]) =
         for song in diff.additions:
             log.info(fmt"({i}/{diff.additions.len}) {song.title}")
 
-            let sanitizedName = name.replace("'", "'\"'\"'")
-            let sanitizedTitle = song.title.replace("'", "'\"'\"'")
+            let sanitizedName = name.replace("'", "'\"'\"'").replace("/", "_")
+            let sanitizedTitle = song.title.replace("'", "'\"'\"'").replace("/", "_")
 
-            let command = fmt"yt-dlp 'https://www.youtube.com/watch?v={song.id}' --extract-audio --audio-format {fileType} -o '{sanitizedName}/{sanitizedTitle}.{fileType}'"
+            let command = fmt"yt-dlp 'https://www.youtube.com/watch?v={song.id}' --embed-metadata --embed-thumbnail --extract-audio --audio-format {fileType} -o '{sanitizedName}/{sanitizedTitle}.{fileType}'"
 
             try:
                 if execShellCmd(command) != 0:
