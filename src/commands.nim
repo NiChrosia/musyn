@@ -1,5 +1,5 @@
 import cli, help, serialization, sources, state
-import std/[tables, strformat, sets]
+import std/[tables, strformat, sets, terminal]
 
 type
     InvalidArgumentCountException* = object of ValueError
@@ -88,10 +88,12 @@ proc status(parts: seq[string]) =
         let diff = source.diff(source)
 
         for song in diff.additions:
-            echo fmt"+ {song.title}"
+            stdout.styledWrite fgGreen, "+"
+            stdout.writeLine " " & song.title
 
         for song in diff.deletions:
-            echo fmt"- {song.title}"
+            stdout.styledWrite fgRed, "-"
+            stdout.writeLine " " & song.title
 
 proc sync(parts: seq[string]) =
     if not tryReadState():
