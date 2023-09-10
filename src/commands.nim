@@ -1,5 +1,5 @@
 import cli, help, serialization, sources, state
-import std/[tables, strformat, sets, terminal]
+import std/[tables, strformat, sets, terminal, os, sequtils]
 
 type
     InvalidArgumentCountException* = object of ValueError
@@ -96,8 +96,35 @@ proc status(parts: seq[string]) =
             stdout.writeLine " " & song.title
 
 proc sync(parts: seq[string]) =
-    if not tryReadState():
+    if not tryReadState() or execShellCmd("yt-dlp --help") != 0:
         return
+
+    for name in stateSources.keys:
+        let source = stateSources[name]
+
+        if ["id", "id_type", "file_type"].anyIt(not source.settings.hasKey(it)):
+            echo fmt"source {name} is missing mandatory settings! cannot continue execution!"
+            return
+
+        if not dirExists(name):
+            createDir(name)
+
+        let diff = source.diff(source)
+        let fileType = source.settings["file_type"]
+
+        var i = 1
+
+        for song in diff.additions:
+            stdout.styledWriteLine fgBlue, fmt"({i}/{diff.additions.len}) {song.title}"
+
+            let command = fmt"yt-dlp 'https://www.youtube.com/watch?v={song.id}' --extract-audio --audio-format {fileType} -o '{name}/{song.title}.{fileType}'"
+            echo "\"", command, "\""
+            discard execShellCmd(command)
+            stateSources[name].songs.incl(song)
+
+            i += 1
+
+    serialization.write()
 
 proc init*() =
     cli.rootDefaultCommand = helpCommand
