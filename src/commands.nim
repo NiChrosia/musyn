@@ -233,6 +233,10 @@ proc sync(parts, options: seq[string]) =
 
             try:
                 if execShellCmd(command) != 0:
+                    if "--skip" in options:
+                        log.info("command failed, skipping...")
+                        continue
+
                     log.error("yt-dlp command failed! exiting...")
                     log.debug(fmt"faulty yt-dlp command: {command}")
 

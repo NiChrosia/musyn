@@ -91,10 +91,13 @@ const CMD_HELP_SYNC = """
 NAME
        musyn-sync - Synchronize online files to local files
 SYNOPSIS
-       musyn sync <name> <name> ...
+       musyn sync [--skip] <name> <name> ...
 DESCRIPTION
        This command can either synchronize all sources, or a specific subset
-       specified after the command."""
+       specified after the command.
+
+       The option "--skip" can be used to skip songs that error, such as private
+       songs."""
 
 const CONCEPT_HELP_SOURCE_TYPES = """
 A source type is an object that converts user-provided settings (e.g., a playlist id)
