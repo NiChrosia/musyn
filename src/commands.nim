@@ -221,9 +221,17 @@ proc sync(parts, options: seq[string]) =
             let sanitizedTitle = song.title.replace("'", "'\"'\"'")
 
             let command = fmt"yt-dlp 'https://www.youtube.com/watch?v={song.id}' --extract-audio --audio-format {fileType} -o '{sanitizedName}/{sanitizedTitle}.{fileType}'"
-            if execShellCmd(command) != 0:
-                log.debug(fmt"faulty yt-dlp command: {command}")
-                log.error("yt-dlp command failed! exiting...")
+
+            try:
+                if execShellCmd(command) != 0:
+                    log.error("yt-dlp command failed! exiting...")
+                    log.debug(fmt"faulty yt-dlp command: {command}")
+
+                    serialization.write()
+                    return
+            except:
+                log.error("error in execution! saving existing songs to index...")
+                log.debug("message: \n" & getCurrentExceptionMsg())
 
                 serialization.write()
                 return
