@@ -8,7 +8,9 @@ Available commands:
 
 manage a working area
    init      Create an empty repository
-   src       Create, delete, or modify a music source
+   src-new   Create a music source
+   src-mod   Change the settings of a source
+   src-del   Delete a source
 
 manage local files
    status    Check for any updates in music sources
@@ -27,22 +29,11 @@ DESCRIPTION
        musyn to function in either [dir], or, by default,
        the current directory."""
 
-const CMD_HELP_SRC = """
-NAME
-       musyn-src - Manage the state of a music source
-SYNOPSIS
-       musyn src (new | mod | del)
-DESCRIPTION
-       This command can initialize a new source, change the parameters of an
-       existing one, or delete an unneeded source.
-
-See 'musyn help src-<subcommand>' for help on each subcommand."""
-
 const CMD_HELP_SRC_NEW = """
 NAME
        musyn-src-new - Create a new music source in the repository
 SYNOPSIS
-       musyn src new <name> <type>
+       musyn src-new <name> <type>
 DESCRIPTION
        This command creates a new music source named <name>,
        with type <type>. Arguments can be configured with "musyn src mod",
@@ -56,7 +47,7 @@ const CMD_HELP_SRC_MOD = """
 NAME
        musyn-src-mod - Change the settings of a music source
 SYNOPSIS
-       musyn src mod <name> <key> <value>
+       musyn src-mod <name> <key> <value>
 DESCRIPTION
        This command changes the setting named <key> to <value>
        in music source <name>.
@@ -67,7 +58,7 @@ const CMD_HELP_SRC_DEL = """
 NAME
        musyn-src-del - Delete a music source in the repository
 SYNOPSIS
-       musyn src del <name>
+       musyn src-del <name>
 DESCRIPTION
        This command deletes the music source named <name> in the repository."""
 
@@ -112,7 +103,6 @@ yt | youtube   id          the id of the playlist or channel to download from   
 let help* = toTable({
     "": CMD_HELP_ROOT,
     "init": CMD_HELP_INIT,
-    "src": CMD_HELP_SRC,
     "src-new": CMD_HELP_SRC_NEW,
     "src-mod": CMD_HELP_SRC_MOD,
     "src-del": CMD_HELP_SRC_DEL,

@@ -6,11 +6,11 @@ type
     Command* = (seq[string]) -> void
 
 var rootCommands*: Table[string, Command]
-var defaultCommand*: Command
+var rootDefaultCommand*: Command
 
 proc process*(parts: seq[string], commands: Table[string, Command]) =
     if parts.len == 0:
-        defaultCommand(@[])
+        rootDefaultCommand(@[])
         return
 
     let command = parts[0]

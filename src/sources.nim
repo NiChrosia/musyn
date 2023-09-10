@@ -1,4 +1,4 @@
-import std/[sugar, tables, json, strformat, httpclient, hashes, sets, os]
+import std/[sugar, tables, json, strformat, httpclient, hashes, sets]
 
 type
     InvalidIdTypeException* = object of ValueError
