@@ -20,7 +20,7 @@ proc helpCommand(parts: seq[string]) =
         let key = parts[0]
 
         if key notin help.help:
-            echo fmt"no help entry exists for key {key}!"
+            echo fmt"no help entry exists for key '{key}'!"
             return
 
         echo help.help[key]
@@ -42,7 +42,7 @@ proc srcNew(parts: seq[string]) =
     of "yt", "youtube":
         stateSources[name] = ytSource()
     else:
-        echo fmt"unrecognized source type {kind}!"
+        echo fmt"unrecognized source type '{kind}'!"
         return
 
     serialization.write()
@@ -58,7 +58,7 @@ proc srcModify(parts: seq[string]) =
     try:
         stateSources[name].settings[key] = value
     except KeyError:
-        echo fmt"unknown source {name}!"
+        echo fmt"unknown source '{name}'!"
         return
 
     serialization.write()
@@ -100,7 +100,7 @@ proc sync(parts: seq[string]) =
         let source = stateSources[name]
 
         if ["id", "id_type", "file_type"].anyIt(not source.settings.hasKey(it)):
-            echo fmt"source {name} is missing mandatory settings! cannot continue execution!"
+            echo fmt"source '{name}' is missing mandatory settings! cannot continue execution!"
             return
 
         if not dirExists(name):
@@ -111,7 +111,7 @@ proc sync(parts: seq[string]) =
         except InvalidIdTypeException:
             let idType = source.settings["id_type"]
 
-            echo fmt"invalid id type {idType}!"
+            echo fmt"invalid id type '{idType}'!"
             return
 
         let fileType = source.settings["file_type"]

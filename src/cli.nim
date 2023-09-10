@@ -1,4 +1,4 @@
-import std/[sugar, tables]
+import std/[sugar, tables, strformat]
 
 type
     Command* = (seq[string]) -> void
@@ -14,4 +14,9 @@ proc process*(parts: seq[string], commands: Table[string, Command]) =
     let command = parts[0]
 
     let subParts = if parts.len == 1: @[] else: parts[1 .. parts.high]
-    commands[command](subParts)
+
+    try:
+        commands[command](subParts)
+    except KeyError:
+        echo fmt"no such command '{command}'!"
+        return
