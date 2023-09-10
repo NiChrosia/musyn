@@ -1,64 +1,80 @@
-import std/[sugar, tables, json, strformat, httpclient, sets]
+import std/[sugar, tables, json, strformat, httpclient, hashes, sets, os]
 
 type
-    Status* = object
-        outdated*: bool
+    InvalidIdTypeException* = object of ValueError
+    NonexistentOldSongException* = object of ValueError
 
-        additions*: HashSet[string]
-        removals*: HashSet[string]
+    Song* = object
+        title*, id*: string
+        duration*: int # seconds
+
+    Diff* = object
+        additions, deletions: HashSet[Song]
 
     Source* = object
         settings*: Table[string, string]
-        titles*: HashSet[string]
-        ids*: HashSet[string]
+        songs*: HashSet[Song]
 
-        status*: (var Source) -> Status
-        sync*: (var Source) -> void
+        diff*: (var Source) -> Diff
 
 const INVIDIOUS_INSTANCE = "invidious.io.lol"
 
 let client = newHttpClient()
 
-proc statusOf*(oldTitles, newTitles: HashSet[string]): Status =
-    result.outdated = oldTitles != newTitles
-    result.additions = newTitles - oldTitles
-    result.removals = oldTitles - newTitles
+# type functions
+proc hash*(song: Song): Hash =
+    return hash(song.title) !& hash(song.id) !& hash(song.duration)
 
-proc youtubeSource*(): Source =
-    proc queryStatus(source: var Source): Status =
-        let playlistId = source.settings["playlist_id"]
+# utility functions
+proc diffOf*(oldSongs, newSongs: HashSet[Song]): Diff =
+    result.additions = newSongs - oldSongs
+    result.deletions = oldSongs - newSongs
 
-        let apiUrl = fmt"https://{INVIDIOUS_INSTANCE}/api/v1/playlists/{playlistId}"
-        let raw = client.getContent(apiUrl)
-        let json = parseJson(raw)
+# source-type specific networking functions
+# - youtube
+proc ytPlaylistSongs*(id: string): HashSet[Song] =
+    let url = fmt"https://{INVIDIOUS_INSTANCE}/api/v1/playlists/{id}"
+    let raw = client.getContent(url)
+    let json = parseJson(raw)
 
-        var titles = initHashSet[string]()
+    for video in json["videos"].getElems():
+        let title = video["title"].getStr()
+        let id = video["videoId"].getStr()
+        let duration = video["lengthSeconds"].getInt()
 
-        for video in json["videos"].getElems():
-            titles.incl(video["title"].getStr())
+        result.incl(Song(title: title, id: id, duration: duration))
 
-        result = statusOf(source.titles, titles)
-        source.titles = titles
+proc ytChannelSongs*(id: string, continuation: string = ""): HashSet[Song] =
+    var url = fmt"https://{INVIDIOUS_INSTANCE}/api/v1/channels/{id}/videos" 
 
-    proc sync(source: var Source) =
-        let playlistId = source.settings["playlist_id"]
+    if continuation != "":
+        url &= fmt"?continuation={continuation}"
 
-        let apiUrl = fmt"https://{INVIDIOUS_INSTANCE}/api/v1/playlists/{playlistId}"
-        let raw = client.getContent(apiUrl)
-        let json = parseJson(raw)
+    let raw = client.getContent(url)
+    let json = parseJson(raw)
 
-        var ids = initHashSet[string]()
+    for video in json["videos"].getElems():
+        let title = video["title"].getStr()
+        let id = video["videoId"].getStr()
+        let duration = video["lengthSeconds"].getInt()
 
-        for video in json["videos"].getElems():
-            ids.incl(video["ids"].getStr())
+        result.incl(Song(title: title, id: id, duration: duration))
 
-        let idStatus = statusOf(source.ids, ids)
+    if json.hasKey("continuation"):
+        for song in ytChannelSongs(id, json["continuation"].getStr()):
+            result.incl(song)
 
-        for addition in idStatus.additions:
-            echo addition
+# sources
+proc ytSource*(): Source =
+    result.diff = proc(source: var Source): Diff =
+        let idType = source.settings["id_type"]
 
-    result.settings = initTable[string, string]()
-    result.titles = initHashSet[string]()
+        let newSongs = case idType
+        of "playlist":
+            ytPlaylistSongs(source.settings["id"])
+        of "channel":
+            ytChannelSongs(source.settings["id"])
+        else:
+            raise newException(InvalidIdTypeException, fmt"Unrecognized id type '{idType}'!")
 
-    result.status = queryStatus
-    result.sync = sync
+        return diffOf(source.songs, newSongs)
