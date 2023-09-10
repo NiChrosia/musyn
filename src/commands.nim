@@ -1,10 +1,6 @@
 import cli, help, serialization, sources, state
 import std/[tables, strformat, sets, terminal, os, sequtils]
 
-type
-    InvalidArgumentCountException* = object of ValueError
-    NoSuchHelpEntryException* = object of ValueError
-
 proc assertArgumentCount(c: int, parts: seq[string]): bool =
     if parts.len != c:
         echo fmt"invalid number of arguments! expected {c}, but found {parts.len}!"
@@ -24,7 +20,8 @@ proc helpCommand(parts: seq[string]) =
         let key = parts[0]
 
         if key notin help.help:
-            raise newException(NoSuchHelpEntryException, fmt"No help entry for key {key}!")
+            echo fmt"no help entry exists for key {key}!"
+            return
 
         echo help.help[key]
     else:
@@ -109,7 +106,14 @@ proc sync(parts: seq[string]) =
         if not dirExists(name):
             createDir(name)
 
-        let diff = source.diff(source)
+        let diff = try:
+            source.diff(source)
+        except InvalidIdTypeException:
+            let idType = source.settings["id_type"]
+
+            echo fmt"invalid id type {idType}!"
+            return
+
         let fileType = source.settings["file_type"]
 
         var i = 1
@@ -118,7 +122,6 @@ proc sync(parts: seq[string]) =
             stdout.styledWriteLine fgBlue, fmt"({i}/{diff.additions.len}) {song.title}"
 
             let command = fmt"yt-dlp 'https://www.youtube.com/watch?v={song.id}' --extract-audio --audio-format {fileType} -o '{name}/{song.title}.{fileType}'"
-            echo "\"", command, "\""
             discard execShellCmd(command)
             stateSources[name].songs.incl(song)
 

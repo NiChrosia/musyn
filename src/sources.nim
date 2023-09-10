@@ -2,7 +2,6 @@ import std/[sugar, tables, json, strformat, httpclient, hashes, sets]
 
 type
     InvalidIdTypeException* = object of ValueError
-    NonexistentOldSongException* = object of ValueError
 
     Song* = object
         title*, id*: string

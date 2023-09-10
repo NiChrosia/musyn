@@ -1,8 +1,6 @@
 import std/[sugar, tables]
 
 type
-    NoCommandException* = object of ValueError
-
     Command* = (seq[string]) -> void
 
 var rootCommands*: Table[string, Command]

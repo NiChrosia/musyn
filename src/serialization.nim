@@ -45,8 +45,6 @@ proc readSource*(json: JsonNode): Source =
     of "youtube":
         result = ytSource()
     else:
-        echo kind
-        echo "youtube"
         raise newException(UnrecognizedSourceTypeException, fmt"unrecognized source type {kind}!")
 
     let settings = json["settings"]
