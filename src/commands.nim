@@ -28,8 +28,11 @@ proc helpCommand(parts: seq[string]) =
         echo help.help[""]
 
 proc init(parts: seq[string]) =
-    serialization.write()
-    echo "repository initialized!"
+    if not fileExists(MUSYN_STATE_FILE):
+        serialization.write()
+        echo "repository initialized!"
+    else:
+        echo "cannot override existing repository!"
 
 proc srcNew(parts: seq[string]) =
     if not tryReadState() or not assertArgumentCount(2, parts):

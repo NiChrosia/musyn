@@ -4,7 +4,7 @@ import std/[json, tables, sets, strformat]
 type
     UnrecognizedSourceTypeException* = object of ValueError
 
-const MUSYN_STATE_FILE = "musyn_state.json"
+const MUSYN_STATE_FILE* = "musyn_state.json"
 
 # per-type serialization
 proc writeSong*(song: Song): JsonNode =
