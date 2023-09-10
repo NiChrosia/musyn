@@ -76,12 +76,67 @@ proc srcDelete(parts: seq[string]) =
 
     serialization.write()
 
+proc srcRecover(parts: seq[string]) =
+    if not tryReadState() or not assertArgumentCount(1, parts):
+        return
+
+    let name = parts[0]
+
+    var titles: HashSet[string]
+    var fileType = ""
+
+    if not dirExists(name):
+        echo "cannot recover from nonexistent directory!"
+        return
+
+    for (kind, path) in walkDir(name):
+        if kind != pcFile:
+            continue
+
+        let (_, title, ext) = splitFile(path)
+        titles.incl(title)
+
+        if fileType != ext and fileType != "":
+            echo "inconsistent song file types! cannot accurately recover unless song file types are all the same!"
+            return
+
+        # only take the xyz part of .xyz
+        fileType = ext[1 .. ext.high]
+
+    if titles.len == 0:
+        echo "directory empty, aborting..."
+        return
+
+    let source = try:
+        stateSources[name]
+    except KeyError:
+        echo fmt"unknown source '{name}'!"
+        return
+
+    stateSources[name].settings["file_type"] = fileType
+
+    if not source.settings.hasKey("id") or not source.settings.hasKey("id_type"):
+        echo "missing one or both of required settings 'id' and 'id_type', cannot continue!"
+        return
+
+    let diff = source.diff(source)
+
+    for song in diff.additions:
+        if song.title in titles:
+            stateSources[name].songs.incl(song)
+
+    serialization.write()
+
 proc status(parts: seq[string]) =
     if not tryReadState():
         return
 
     for name in stateSources.keys:
         let source = stateSources[name]
+
+        if not source.settings.hasKey("id") or not source.settings.hasKey("id_type"):
+            echo "missing one or both of required settings 'id' and 'id_type', cannot continue!"
+            return
 
         echo fmt"[{name}]"
 
@@ -94,6 +149,9 @@ proc status(parts: seq[string]) =
         for song in diff.deletions:
             stdout.styledWrite fgRed, "-"
             stdout.writeLine " " & song.title
+
+        if diff.additions.len == 0 and diff.deletions.len == 0:
+            echo "no upstream changes"
 
 proc sync(parts: seq[string]) =
     if not tryReadState() or execShellCmd("yt-dlp --help") != 0:
@@ -135,10 +193,11 @@ proc sync(parts: seq[string]) =
 proc init*() =
     cli.rootDefaultCommand = helpCommand
 
-    cli.rootCommands["init"]    = init
-    cli.rootCommands["src-new"] = srcNew
-    cli.rootCommands["src-mod"] = srcModify
-    cli.rootCommands["src-del"] = srcDelete
-    cli.rootCommands["status"]  = status
-    cli.rootCommands["sync"]    = sync
-    cli.rootCommands["help"]    = helpCommand
+    cli.rootCommands["init"]        = init
+    cli.rootCommands["src-new"]     = srcNew
+    cli.rootCommands["src-mod"]     = srcModify
+    cli.rootCommands["src-del"]     = srcDelete
+    cli.rootCommands["src-recover"] = srcRecover
+    cli.rootCommands["status"]      = status
+    cli.rootCommands["sync"]        = sync
+    cli.rootCommands["help"]        = helpCommand

@@ -5,8 +5,7 @@ author        = "NiChrosia"
 description   = "An internet-to-file music synchronizer. Built to make automatically downloading new music easier."
 license       = "MIT"
 srcDir        = "src"
-bin           = @["main"]
-
+bin           = @["musyn"]
 
 # Dependencies
 

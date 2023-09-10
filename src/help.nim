@@ -70,7 +70,9 @@ SYNOPSIS
        musyn src-recover <name>
 DESCRIPTION
        This command rebuilds the song index by comparing it against the files in the
-       folder with the same name."""
+       folder with the same name.
+
+       Note: this command resets the file_type setting to the filetype of the local files."""
 
 const CMD_HELP_STATUS = """
 NAME

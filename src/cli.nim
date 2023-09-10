@@ -15,8 +15,10 @@ proc process*(parts: seq[string], commands: Table[string, Command]) =
 
     let subParts = if parts.len == 1: @[] else: parts[1 .. parts.high]
 
-    try:
-        commands[command](subParts)
+    let commandProc = try:
+        commands[command]
     except KeyError:
         echo fmt"no such command '{command}'!"
         return
+
+    commandProc(subParts)
