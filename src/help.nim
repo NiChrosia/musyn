@@ -70,10 +70,10 @@ const CMD_HELP_SRC_RECOVER = """
 NAME
        musyn-src-recover - Recover the song index for a source
 SYNOPSIS
-       musyn src-recover <name>
+       musyn src-recover <name> <name> ...
 DESCRIPTION
        This command rebuilds the song index by comparing it against the files in the
-       folder with the same name.
+       folders with the same name. If no names are given, all sources will be tried.
 
        Note: this command resets the file_type setting to the filetype of the local files."""
 

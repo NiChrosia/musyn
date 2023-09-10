@@ -110,57 +110,66 @@ proc srcDelete(parts, options: seq[string]) =
     serialization.write()
 
 proc srcRecover(parts, options: seq[string]) =
-    if not tryReadState() or not assertArgumentCount(1, parts):
+    if not tryReadState():
         return
 
-    let name = parts[0]
+    var names: seq[string]
 
-    var titles: HashSet[string]
-    var fileType = ""
+    if parts.len == 0:
+        for name in stateSources.keys:
+            names.add(name)
+    else:
+        names = parts
 
-    if not dirExists(name):
-        log.error("cannot recover from nonexistent directory!")
-        return
+    for name in names:
+        var titles: HashSet[string]
+        var fileType = ""
 
-    for (kind, path) in walkDir(name):
-        if kind != pcFile:
-            continue
+        if not dirExists(name):
+            if parts.len > 0:
+                log.error(fmt"cannot recover from nonexistent directory '{name}'!")
 
-        var (_, title, ext) = splitFile(path)
-        ext = ext[1 .. ext.high]
-
-        titles.incl(title)
-
-        if fileType != ext and fileType != "":
-            log.error(fmt"inconsistent song file types (expected '{fileType}' but found '{ext}')! cannot accurately recover unless song file types are all the same!")
             return
 
-        # only take the xyz part of .xyz
-        fileType = ext
+        for (kind, path) in walkDir(name):
+            if kind != pcFile:
+                continue
 
-    if titles.len == 0:
-        echo "directory empty, aborting..."
-        return
+            var (_, title, ext) = splitFile(path)
+            ext = ext[1 .. ext.high]
 
-    let source = try:
-        stateSources[name]
-    except KeyError:
-        echo fmt"unknown source '{name}'!"
-        return
+            titles.incl(title)
 
-    stateSources[name].settings["file_type"] = fileType
+            if fileType != ext and fileType != "":
+                log.error(fmt"inconsistent song file types in directory '{name}' (expected '{fileType}' but found '{ext}')! cannot accurately recover unless song file types are all the same!")
+                return
 
-    if not source.settings.hasKey("id") or not source.settings.hasKey("id_type"):
-        echo "missing one or both of required settings 'id' and 'id_type', cannot continue!"
-        return
+            # only take the xyz part of .xyz
+            fileType = ext
 
-    let diff = source.diff(source)
+        if titles.len == 0:
+            echo "directory empty, aborting..."
+            return
 
-    for song in diff.additions:
-        if song.title in titles:
-            stateSources[name].songs.incl(song)
+        let source = try:
+            stateSources[name]
+        except KeyError:
+            echo fmt"unknown source '{name}'!"
+            return
 
-    serialization.write()
+        stateSources[name].settings["file_type"] = fileType
+
+        if not source.settings.hasKey("id") or not source.settings.hasKey("id_type"):
+            echo "missing one or both of required settings 'id' and 'id_type', cannot continue!"
+            return
+
+        let diff = source.diff(source)
+
+        for song in diff.additions:
+            if song.title in titles:
+                stateSources[name].songs.incl(song)
+
+        serialization.write()
 
 proc status(parts, options: seq[string]) =
     if not tryReadState():
