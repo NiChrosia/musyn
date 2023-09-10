@@ -6,10 +6,12 @@ type
     Command* = (seq[string]) -> void
 
 var rootCommands*: Table[string, Command]
+var defaultCommand*: Command
 
 proc process*(parts: seq[string], commands: Table[string, Command]) =
     if parts.len == 0:
-        raise newException(NoCommandException, "No command given!")
+        defaultCommand(@[])
+        return
 
     let command = parts[0]
 

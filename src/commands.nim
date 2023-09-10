@@ -1,5 +1,13 @@
-import cli
-import std/[tables]
+import cli, help
+import std/[tables, strformat]
+
+type
+    InvalidArgumentCountException* = object of ValueError
+    NoSuchHelpEntryException* = object of ValueError
+
+proc assertArgumentCount(c: int, parts: seq[string]) =
+    if parts.len != c:
+        raise newException(InvalidArgumentCountException, fmt"Invalid number of arguments! Expected {c}, but found {parts.len}!")
 
 var srcCommands: Table[string, Command]
 
@@ -24,11 +32,26 @@ proc status(parts: seq[string]) =
 proc sync(parts: seq[string]) =
     discard
 
-cli.rootCommands["init"] = init
-cli.rootCommands["src"] = src
-cli.rootCommands["status"] = status
-cli.rootCommands["sync"] = sync
+proc helpCommand(parts: seq[string]) =
+    if parts.len > 0:
+        let key = parts[0]
 
-srcCommands["new"] = srcNew
-srcCommands["mod"] = srcModify
-srcCommands["del"] = srcDelete
+        if key notin help.help:
+            raise newException(NoSuchHelpEntryException, fmt"No help entry for key {key}!")
+
+        echo help.help[key]
+    else:
+        echo help.help[""]
+
+proc init*() =
+    cli.defaultCommand = helpCommand
+
+    cli.rootCommands["init"]   = init
+    cli.rootCommands["src"]    = src
+    cli.rootCommands["status"] = status
+    cli.rootCommands["sync"]   = sync
+    cli.rootCommands["help"]   = helpCommand
+
+    srcCommands["new"] = srcNew
+    srcCommands["mod"] = srcModify
+    srcCommands["del"] = srcDelete
