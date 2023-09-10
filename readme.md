@@ -4,19 +4,25 @@ A tool to more easily synchronize online repositories of music to local storage.
 
 # Quickstart
 
-1. Initialize a repository.
+1. Install musyn. Currently, the only option is by using Nimble with the source code, but I might turn this into a Nimble package at some point.
+
+```
+nimble install
+```
+
+2. Initialize a repository.
 
 ```
 musyn init
 ```
 
-2. Create a source. Currently, the only available type is YouTube, which can be input as "youtube" or "yt".
+3. Create a source. Currently, the only available type is YouTube, which can be input as "youtube" or "yt".
 
 ```
 musyn src-new <name> <type>
 ```
 
-3. Configure required settings. Currently, the only options for YouTube are playlist and channel IDs.
+4. Configure required settings. Currently, the only options for YouTube are playlist and channel IDs.
 
 ```
 musyn src-mod <name> id <id>
@@ -24,13 +30,13 @@ musyn src-mod <name> id_type (playlist | channel)
 musyn src-mod <name> file_type <audio file extension>
 ```
 
-4. Synchronize.
+5. Synchronize.
 
 ```
 musyn sync
 ```
 
-For example, with a playlist of Qumu's original songs, the process would be:
+All in one, with Qumu's music as an example, that would be:
 
 ```
 musyn init
