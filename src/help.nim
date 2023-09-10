@@ -34,12 +34,15 @@ const CMD_HELP_SRC_NEW = """
 NAME
        musyn-src-new - Create a new music source in the repository
 SYNOPSIS
-       musyn src-new <name> <type>
+       musyn src-new [-g | --guide] <name> <type>
 DESCRIPTION
        This command creates a new music source named <name>,
        with type <type>. Arguments can be configured with "musyn src mod",
        and generally require at least one or two changes before a source
        can be used.
+
+       To avoid having to manually enter "src-mod" commands for the required
+       settings, use the option "--guide", or "-g".
 
 See 'musyn help :source-types' for more information about the types of sources available,
 and 'musyn help src-mod' for information about how to use "musyn src mod"."""
