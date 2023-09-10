@@ -15,7 +15,7 @@ proc tryReadState(): bool =
 
     return true
 
-proc helpCommand(parts: seq[string]) =
+proc helpCommand(parts, options: seq[string]) =
     if parts.len > 0:
         let key = parts[0]
 
@@ -27,14 +27,14 @@ proc helpCommand(parts: seq[string]) =
     else:
         echo help.help[""]
 
-proc init(parts: seq[string]) =
+proc init(parts, options: seq[string]) =
     if not fileExists(MUSYN_STATE_FILE):
         serialization.write()
         echo "repository initialized!"
     else:
         echo "cannot override existing repository!"
 
-proc srcNew(parts: seq[string]) =
+proc srcNew(parts, options: seq[string]) =
     if not tryReadState() or not assertArgumentCount(2, parts):
         return
 
@@ -48,9 +48,42 @@ proc srcNew(parts: seq[string]) =
         echo fmt"unrecognized source type '{kind}'!"
         return
 
+    if "-g" in options or "--guide" in options:
+        case kind
+        of "yt", "youtube":
+            stdout.write("id: ")
+            let id = stdin.readLine()
+
+            var idType: string
+
+            while true:
+                stdout.write("id_type: ")
+                idType = stdin.readLine()
+
+                if idType == "playlist" or idType == "channel":
+                    break
+                else:
+                    echo fmt"invalid id type {idType}!"
+
+            stdout.write("file_type: ")
+            let fileType = stdin.readLine()
+
+            stateSources[name].settings["id"] = id
+            stateSources[name].settings["id_type"] = idType
+            stateSources[name].settings["file_type"] = fileType
+
+            stdout.write("sync (Y/n): ")
+            let shouldSync = stdin.readLine()
+
+            if ["", "y", "Y", "yes", "YES"].anyIt(it == shouldSync):
+                echo "synchronizing..."
+                cli.rootCommands["sync"](@[], @[])
+            else:
+                echo "not syncing."
+
     serialization.write()
 
-proc srcModify(parts: seq[string]) =
+proc srcModify(parts, options: seq[string]) =
     if not tryReadState() or not assertArgumentCount(3, parts):
         return
 
@@ -66,7 +99,7 @@ proc srcModify(parts: seq[string]) =
 
     serialization.write()
 
-proc srcDelete(parts: seq[string]) =
+proc srcDelete(parts, options: seq[string]) =
     if not tryReadState() or not assertArgumentCount(1, parts):
         return
 
@@ -76,7 +109,7 @@ proc srcDelete(parts: seq[string]) =
 
     serialization.write()
 
-proc srcRecover(parts: seq[string]) =
+proc srcRecover(parts, options: seq[string]) =
     if not tryReadState() or not assertArgumentCount(1, parts):
         return
 
@@ -127,7 +160,7 @@ proc srcRecover(parts: seq[string]) =
 
     serialization.write()
 
-proc status(parts: seq[string]) =
+proc status(parts, options: seq[string]) =
     if not tryReadState():
         return
 
@@ -153,7 +186,7 @@ proc status(parts: seq[string]) =
         if diff.additions.len == 0 and diff.deletions.len == 0:
             echo "no upstream changes"
 
-proc sync(parts: seq[string]) =
+proc sync(parts, options: seq[string]) =
     if not tryReadState() or execShellCmd("yt-dlp --help") != 0:
         return
 
@@ -183,7 +216,13 @@ proc sync(parts: seq[string]) =
             stdout.styledWriteLine fgBlue, fmt"({i}/{diff.additions.len}) {song.title}"
 
             let command = fmt"yt-dlp 'https://www.youtube.com/watch?v={song.id}' --extract-audio --audio-format {fileType} -o '{name}/{song.title}.{fileType}'"
-            discard execShellCmd(command)
+            if execShellCmd(command) != 0:
+                echo "yt-dlp command failed! aborting and resetting changes to index!"
+                stateSources[name].songs = stateSources[name].songs - diff.additions
+
+                serialization.write()
+                return
+
             stateSources[name].songs.incl(song)
 
             i += 1
