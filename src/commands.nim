@@ -240,8 +240,8 @@ proc sync(parts, options: seq[string]) =
         for song in diff.additions:
             log.info(fmt"({i}/{diff.additions.len}) {song.title}")
 
-            let sanitizedName = name.replace("'", "'\"'\"'").replace("/", "_")
-            let sanitizedTitle = song.title.replace("'", "'\"'\"'").replace("/", "_")
+            let sanitizedName = name.replace("'", "'\"'\"'").replace("/", "∕")
+            let sanitizedTitle = song.title.replace("'", "'\"'\"'").replace("/", "∕")
 
             let command = fmt"yt-dlp 'https://www.youtube.com/watch?v={song.id}' --embed-metadata --embed-thumbnail --extract-audio --audio-format {fileType} -o '{sanitizedName}/{sanitizedTitle}.{fileType}'"
 
