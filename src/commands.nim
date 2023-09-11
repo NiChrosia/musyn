@@ -83,6 +83,24 @@ proc srcNew(parts, options: seq[string]) =
 
     serialization.write()
 
+proc srcRename(parts, options: seq[string]) =
+    if not tryReadState() or not assertArgumentCount(2, parts):
+        return
+
+    let name = parts[0]
+    let newName = parts[1]
+
+    if name notin stateSources:
+        log.error(fmt"invalid source name '{name}'!")
+        return
+
+    stateSources[newName] = stateSources[name]
+    stateSources.del(name)
+
+    if dirExists(name):
+        log.info(fmt"moving '{name}/' to '{newName}/'...")
+        moveDir(name, newName)
+
 proc srcModify(parts, options: seq[string]) =
     if not tryReadState() or not assertArgumentCount(3, parts):
         return
@@ -274,6 +292,7 @@ proc init*() =
 
     cli.rootCommands["init"]        = init
     cli.rootCommands["src-new"]     = srcNew
+    cli.rootCommands["src-rename"]  = srcRename
     cli.rootCommands["src-mod"]     = srcModify
     cli.rootCommands["src-del"]     = srcDelete
     cli.rootCommands["src-recover"] = srcRecover
