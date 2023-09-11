@@ -226,6 +226,8 @@ proc sync(parts, options: seq[string]) =
             names.add(name)
     else:
         names = parts
+    
+    var globalSongCount = 0
 
     for name in names:
         try:
@@ -259,7 +261,6 @@ proc sync(parts, options: seq[string]) =
             log.info(fmt"({i}/{diff.additions.len}) {song.title}")
 
             let sanitizedName = name.replace("'", "'\"'\"'").replace("/", "∕")
-            let sanitizedTitle = song.title.replace("'", "'\"'\"'").replace("/", "∕")
 
             let command = fmt"yt-dlp 'https://www.youtube.com/watch?v={song.id}' --embed-metadata --embed-thumbnail --extract-audio --audio-format {fileType} -P '{sanitizedName}' -o '%(title)s.%(ext)s'"
 
@@ -284,6 +285,14 @@ proc sync(parts, options: seq[string]) =
             stateSources[name].songs.incl(song)
 
             i += 1
+            globalSongCount += 1
+
+            if globalSongCount mod 10 == 0:
+                # I swear, I'm sick of this going through like 200 songs, 
+                # erroring once, and then deleting all of my progress in the index
+
+                # so there
+                serialization.write()
 
     serialization.write()
 
