@@ -4,7 +4,7 @@
 example help page:
 
 SYNOPSIS
-    musyn (c | create) <name> [<kind> [<kind-dependent options>]]
+    musyn (c | create) <name> [(-k | --kind) <kind>] [(-ft | --file-type) <filetype>] [<kind-specific options>]
 EXAMPLES
     musyn c Qumu
     kind (yt, youtube)? yt
@@ -16,6 +16,9 @@ EXAMPLES
     playlist id? PL0PCz_ViBzWZPPjiVmYXZWHbXkGpbQNA6
 DESCRIPTION
     Creates a new music source, and configures it with the necessary options.
+
+    If any options are not provided in the initial command, they will be manually
+    queried from the user instead.
 OPTION                   REQUIREMENTS    DESCRIPTION
 -k, --kind                               kind of online source
                                          valid values: yt, youtube
@@ -29,6 +32,8 @@ OPTION                   REQUIREMENTS    DESCRIPTION
 -i, --id                 kind: youtube   playlist or channel id
                                          valid values: any valid YouTube playlist or channel id
 
+command synopses:
+
 musyn (c | create)  <name> [<kind> [<kind-dependent arguments>]]
 musyn (n | rename)  <name> <new name>
 musyn (v | set)     <name> <setting> <value>
@@ -39,6 +44,8 @@ musyn (s | sync) [(-i | --ignore-private)]
 
 musyn (h | help) (<command> | :<concept>)
 
+```
+```
 + has abbreviations
 + has much more intuitive names
 + supports specifying specific parameters and querying the rest
@@ -81,6 +88,8 @@ diffs: Table[string, (Source) -> Diff]
 # kind: (filename, song) -> void
 downloads: Table[string, (string, Song) -> void]
 
+```
+```
 + kind-specific code abstracted to diffs and downloads
 + enums prevent possible invalid values
 - more complex JSON due to enums and field case statements
@@ -100,6 +109,8 @@ type
 
 proc process(processor: CommandProcessor, rawArguments: seq[string]) -> void
 
+```
+```
 + no more per-file state
 + allows much easier subcommands
 + builtin help command
@@ -125,6 +136,8 @@ proc process(processor: CommandProcessor, rawArguments: seq[string]) -> void
     }
 }
 
+```
+```
 + has kind-specific settings
 ```
 
@@ -137,5 +150,7 @@ proc process(processor: CommandProcessor, rawArguments: seq[string]) -> void
 
 musyn.log
 
+```
+```
 + keeps a readable logfile
 ```
