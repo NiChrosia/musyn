@@ -87,7 +87,6 @@ type
 diffs: Table[string, (Source) -> Diff]
 # kind: (filename, song) -> void
 downloads: Table[string, (string, Song) -> void]
-
 ```
 ```diff
 + kind-specific code abstracted to diffs and downloads
