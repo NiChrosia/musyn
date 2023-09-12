@@ -9,6 +9,7 @@ Available commands:
 manage a working area
    init          Create an empty repository
    src-new       Create a music source
+   src-rename    Change the name of a source
    src-mod       Change the settings of a source
    src-del       Delete a source
    src-recover   Recover the state of a source from a pre-existing folder
@@ -46,6 +47,14 @@ DESCRIPTION
 
 See 'musyn help :source-types' for more information about the types of sources available,
 and 'musyn help src-mod' for information about how to use "musyn src mod"."""
+
+const CMD_HELP_SRC_RENAME = """
+NAME
+       musyn-src-rename - Renames a source
+SYNOPSIS
+       musyn src-rename <name> <new name>
+DESCRIPTION
+       Renames the source in the index and renames the folder, if it exists."""
 
 const CMD_HELP_SRC_MOD = """
 NAME
@@ -122,6 +131,7 @@ let help* = toTable({
     "": CMD_HELP_ROOT,
     "init": CMD_HELP_INIT,
     "src-new": CMD_HELP_SRC_NEW,
+    "src-rename": CMD_HELP_SRC_RENAME,
     "src-mod": CMD_HELP_SRC_MOD,
     "src-del": CMD_HELP_SRC_DEL,
     "src-recover": CMD_HELP_SRC_RECOVER,
