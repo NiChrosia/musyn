@@ -45,7 +45,7 @@ musyn (s | sync) [(-i | --ignore-private)]
 musyn (h | help) (<command> | :<concept>)
 
 ```
-```
+```diff
 + has abbreviations
 + has much more intuitive names
 + supports specifying specific parameters and querying the rest
@@ -89,7 +89,7 @@ diffs: Table[string, (Source) -> Diff]
 downloads: Table[string, (string, Song) -> void]
 
 ```
-```
+```diff
 + kind-specific code abstracted to diffs and downloads
 + enums prevent possible invalid values
 - more complex JSON due to enums and field case statements
@@ -110,7 +110,7 @@ type
 proc process(processor: CommandProcessor, rawArguments: seq[string]) -> void
 
 ```
-```
+```diff
 + no more per-file state
 + allows much easier subcommands
 + builtin help command
@@ -137,7 +137,7 @@ proc process(processor: CommandProcessor, rawArguments: seq[string]) -> void
 }
 
 ```
-```
+```diff
 + has kind-specific settings
 ```
 
@@ -151,6 +151,6 @@ proc process(processor: CommandProcessor, rawArguments: seq[string]) -> void
 musyn.log
 
 ```
-```
+```diff
 + keeps a readable logfile
 ```
