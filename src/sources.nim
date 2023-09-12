@@ -17,7 +17,7 @@ type
     Diff = object
         additions, deletions: HashSet[Song]
 
-    Source = object
+    Source* = object
         case kind: SourceKind
         of skYt:
             repositoryKind: YtRepositoryKind

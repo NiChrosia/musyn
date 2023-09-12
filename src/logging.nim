@@ -1,13 +1,13 @@
 import std/[terminal, times, strformat]
 
+type
+    Logger* = object
+        file: File
+
 const
     INFO_COLOR = fgBlue
     DEBUG_COLOR = fgGreen
     ERROR_COLOR = fgRed
-
-    LOG_FILE_NAME = "musyn.log"
-
-var logFile: File
 
 # utility
 proc writeValues(values: openArray[string], file: File) =
@@ -23,27 +23,27 @@ proc writeValues(values: openArray[string], file: File) =
     file.write("\n")
 
 # api
-proc info*(values: varargs[string, `$`]) =
+proc info*(log: Logger, values: varargs[string, `$`]) =
     stdout.styledWrite(INFO_COLOR, "[I]")
 
     writeValues(values, stdout)
-    writeValues(values, logFile)
+    writeValues(values, log.file)
 
-proc debug*(values: varargs[string, `$`]) =
+proc debug*(log: Logger, values: varargs[string, `$`]) =
     stdout.styledWrite(DEBUG_COLOR, "[D]")
 
     writeValues(values, stdout)
-    writeValues(values, logFile)
+    writeValues(values, log.file)
 
-proc error*(values: varargs[string, `$`]) =
+proc error*(log: Logger, values: varargs[string, `$`]) =
     stdout.styledWrite(ERROR_COLOR, "[E]")
 
     writeValues(values, stdout)
-    writeValues(values, logFile)
+    writeValues(values, log.file)
 
 # state
-proc init*() =
-    logFile = open(LOG_FILE_NAME)
+proc init*(_: typedesc[Logger], fileName: string): Logger =
+    result.file = open(fileName)
 
-proc terminate*() =
-    logFile.close()
+proc terminate*(log: Logger) =
+    log.file.close()

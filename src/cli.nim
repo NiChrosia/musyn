@@ -1,4 +1,4 @@
-import log
+import state, logging
 import std/[tables, sets, sugar, strformat]
 
 type
@@ -31,7 +31,7 @@ proc process*(processor: CommandProcessor, rawArguments: seq[string]) =
 
     if commandName notin processor.commands:
         log.error(fmt"no such command '{commandName}'!")
-        return
+        quit(QuitFailure)
 
     var arguments: seq[string]
     var options: Table[string, string]
