@@ -272,11 +272,6 @@ proc sync(parts, options: seq[string]) =
                 if execShellCmd(command) != 0:
                     if "--skip" in options:
                         log.info("command failed, skipping...")
-
-                        echo fmt"song title: ({song.title})"
-                        echo song.title == "[Private video]"
-                        echo song.title.mapIt(ord(it))
-                        echo "[Private video]".mapIt(ord(it))
                         continue
 
                     log.error("yt-dlp command failed! exiting...")
