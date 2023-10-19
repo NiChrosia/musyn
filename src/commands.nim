@@ -297,7 +297,7 @@ proc sync(parts, options: seq[string]) =
             if fileExists(sanitizedName / song.title):
                 removeFile(sanitizedName / song.title)
 
-                stateSources[name].songs.excl(song)
+            stateSources[name].songs.excl(song)
 
             i += 1
             globalSongCount += 1
