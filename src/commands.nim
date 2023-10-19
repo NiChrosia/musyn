@@ -216,101 +216,103 @@ proc status(parts, options: seq[string]) =
             echo "no upstream changes"
 
 proc sync(parts, options: seq[string]) =
-    if not tryReadState() or execShellCmd("yt-dlp --help") != 0:
-        return
-
-    var names: seq[string]
-
-    if parts.len == 0:
-        for name in stateSources.keys:
-            names.add(name)
-    else:
-        names = parts
-    
-    var globalSongCount = 0
-
-    for name in names:
-        try:
-            discard stateSources[name]
-        except:
-            log.error(fmt"invalid source name '{name}'!")
+    try:
+        if not tryReadState() or execShellCmd("yt-dlp --help") != 0:
             return
 
-        let source = stateSources[name]
+        var sources: Table[string, Source]
 
-        if ["id", "id_type", "file_type"].anyIt(not source.settings.hasKey(it)):
-            echo fmt"source '{name}' is missing mandatory settings! cannot continue execution!"
-            return
+        # add source names
+        for name in parts:
+            if name notin stateSources:
+                log.error(fmt"invalid source name '{name}'!")
+                return
 
-        if not dirExists(name):
-            createDir(name)
+            sources[name] = stateSources[name]
 
-        let diff = try:
-            source.diff(source)
-        except InvalidIdTypeException:
-            let idType = source.settings["id_type"]
+        if parts.len == 0:
+            sources = stateSources
 
-            echo fmt"invalid id type '{idType}'!"
-            return
+        # validate sources
+        for name, source in sources:
+            let valid_string = source.valid(source)
 
-        let fileType = source.settings["file_type"]
-        let sanitizedName = name.replace("'", "'\"'\"'").replace("/", "∕")
+            if valid_string != "":
+                log.error(valid_string)
+                return
 
-        var i = 1
+            if not dirExists(name):
+                createDir(name)
 
-        for song in diff.additions:
-            log.info(fmt"+ ({i}/{diff.additions.len}) {song.title}")
+        let sourceLen = sources.len
+        
+        var
+            globalSongIndex = 0
+            sourceIndex = 0
 
-            # sure, this'll have *some* false positives, but they're rare enough to be irrelevant
-            if song.title == "[Private video]":
-                log.info("video is private, skipping...")
-                continue
+        for name, source in sources:
+            let
+                diff = source.diff(source)
 
-            let command = fmt"yt-dlp 'https://www.youtube.com/watch?v={song.id}' --embed-metadata --embed-thumbnail --extract-audio --audio-format {fileType} -P '{sanitizedName}' -o '%(title)s.%(ext)s'"
+                fileType = source.settings["file_type"]
+                sanitizedName = name.replace("'", "'\"'\"'").replace("/", "∕")
 
-            try:
-                if execShellCmd(command) != 0:
+                addLen = diff.additions.len
+                delLen = diff.deletions.len
+
+            var songIndex = 0
+            for song in diff.additions:
+                log.info(fmt"adding ({sourceIndex + 1}:{songIndex + 1}/{sourceLen}:{addLen}) {name}/{song.title}...")
+
+                if song.title == "[Private video]":
+                    log.info("video is private, skipping...")
+                    continue
+
+                let command = fmt"yt-dlp 'https://www.youtube.com/watch?v={song.id}' --embed-metadata --embed-thumbnail --extract-audio --audio-format {fileType} -P '{sanitizedName}' -o '%(title)s.%(ext)s'"
+                let result = execShellCmd(command)
+
+                if result != 0:
                     if "--skip" in options:
                         log.info("command failed, skipping...")
                         continue
+                    else:
+                        log.error("yt-dlp command failed! exiting...")
+                        log.debug(fmt"faulty yt-dlp command: {command}")
 
-                    log.error("yt-dlp command failed! exiting...")
-                    log.debug(fmt"faulty yt-dlp command: {command}")
+                        serialization.write()
+                        return
 
+                stateSources[name].songs.incl(song)
+
+                songIndex += 1
+                globalSongIndex += 1
+
+                if globalSongIndex mod 10 == 0:
                     serialization.write()
-                    return
-            except:
-                log.error("error in execution! saving existing songs to index...")
-                log.debug("message: \n" & getCurrentExceptionMsg())
 
-                serialization.write()
-                return
+            songIndex = 0
+            for song in diff.deletions:
+                log.info(fmt"removing ({sourceIndex + 1}:{songIndex + 1}/{sourceLen}:{delLen}) {name}/{song.title}...")
 
-            stateSources[name].songs.incl(song)
+                if fileExists(sanitizedName / song.title):
+                    removeFile(sanitizedName / song.title)
 
-            i += 1
-            globalSongCount += 1
+                stateSources[name].songs.excl(song)
 
-            if globalSongCount mod 10 == 0:
-                serialization.write()
+                songIndex += 1
+                globalSongIndex += 1
 
-        i = 1
+                if globalSongIndex mod 10 == 0:
+                    serialization.write()
 
-        for song in diff.deletions:
-            log.info(fmt"- ({i}/{diff.deletions.len}) {song.title}")
+            sourceIndex += 1
 
-            if fileExists(sanitizedName / song.title):
-                removeFile(sanitizedName / song.title)
+        serialization.write()
+    except:
+        log.error("error in execution! saving existing songs to index...")
+        log.debug("message: \n" & getCurrentExceptionMsg())
 
-            stateSources[name].songs.excl(song)
-
-            i += 1
-            globalSongCount += 1
-
-            if globalSongCount mod 10 == 0:
-                serialization.write()
-
-    serialization.write()
+        serialization.write()
 
 proc init*() =
     cli.rootDefaultCommand = helpCommand

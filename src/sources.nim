@@ -16,6 +16,7 @@ type
         songs*: HashSet[Song]
 
         diff*: (Source) -> Diff
+        valid*: (Source) -> string
 
 const INVIDIOUS_INSTANCE = "invidious.io.lol"
 
@@ -79,11 +80,24 @@ proc ytStatus*(source: Source): Diff =
     of "channel":
         ytChannelSongs(source.settings["id"])
     else:
+        # should never occur, in theory
         raise newException(InvalidIdTypeException, fmt"Unrecognized id type '{idType}'!")
 
     return diffOf(source.songs, newSongs)
+
+proc ytValid*(source: Source): string =
+    if "id" notin source.settings or
+       "id_type" notin source.settings or
+       "file_type" notin source.settings:
+        return "missing one or more critical settings (id, id_type, file_type)!"
+
+    if source.settings["id_type"] notin ["playlist", "channel"]:
+        return "id type is not a valid option (playlist, channel)!"
+
+    return ""
 
 # sources
 proc ytSource*(): Source =
     result.kind = "youtube"
     result.diff = ytStatus
+    result.valid = ytValid
