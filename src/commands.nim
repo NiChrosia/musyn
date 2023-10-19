@@ -254,13 +254,12 @@ proc sync(parts, options: seq[string]) =
             return
 
         let fileType = source.settings["file_type"]
+        let sanitizedName = name.replace("'", "'\"'\"'").replace("/", "∕")
 
         var i = 1
 
         for song in diff.additions:
-            log.info(fmt"({i}/{diff.additions.len}) {song.title}")
-
-            let sanitizedName = name.replace("'", "'\"'\"'").replace("/", "∕")
+            log.info(fmt"+ ({i}/{diff.additions.len}) {song.title}")
 
             let command = fmt"yt-dlp 'https://www.youtube.com/watch?v={song.id}' --embed-metadata --embed-thumbnail --extract-audio --audio-format {fileType} -P '{sanitizedName}' -o '%(title)s.%(ext)s'"
 
@@ -288,10 +287,20 @@ proc sync(parts, options: seq[string]) =
             globalSongCount += 1
 
             if globalSongCount mod 10 == 0:
-                # I swear, I'm sick of this going through like 200 songs, 
-                # erroring once, and then deleting all of my progress in the index
+                serialization.write()
 
-                # so there
+        i = 0
+
+        for song in diff.deletions:
+            log.info(fmt"- ({i}/{diff.deletions.len}) {song.title}")
+
+            if fileExists(sanitizedName / song.title):
+                removeFile(sanitizedName / song.title)
+
+            i += 1
+            globalSongCount += 1
+
+            if globalSongCount mod 10 == 0:
                 serialization.write()
 
     serialization.write()
