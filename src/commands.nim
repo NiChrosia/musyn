@@ -261,6 +261,10 @@ proc sync(parts, options: seq[string]) =
         for song in diff.additions:
             log.info(fmt"+ ({i}/{diff.additions.len}) {song.title}")
 
+            # sure, this'll have *some* false positives, but they're rare enough to be irrelevant
+            if song.title == "Private video":
+                log.info("video is private, skipping...")
+
             let command = fmt"yt-dlp 'https://www.youtube.com/watch?v={song.id}' --embed-metadata --embed-thumbnail --extract-audio --audio-format {fileType} -P '{sanitizedName}' -o '%(title)s.%(ext)s'"
 
             try:
