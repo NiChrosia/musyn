@@ -264,6 +264,7 @@ proc sync(parts, options: seq[string]) =
             # sure, this'll have *some* false positives, but they're rare enough to be irrelevant
             if song.title == "Private video":
                 log.info("video is private, skipping...")
+                continue
 
             let command = fmt"yt-dlp 'https://www.youtube.com/watch?v={song.id}' --embed-metadata --embed-thumbnail --extract-audio --audio-format {fileType} -P '{sanitizedName}' -o '%(title)s.%(ext)s'"
 
@@ -273,6 +274,7 @@ proc sync(parts, options: seq[string]) =
                         log.info("command failed, skipping...")
 
                         echo fmt"song title: ({song.title})"
+                        echo song.title == "Private video"
                         continue
 
                     log.error("yt-dlp command failed! exiting...")
