@@ -262,7 +262,7 @@ proc sync(parts, options: seq[string]) =
             log.info(fmt"+ ({i}/{diff.additions.len}) {song.title}")
 
             # sure, this'll have *some* false positives, but they're rare enough to be irrelevant
-            if song.title == "Private video":
+            if song.title == "[Private video]":
                 log.info("video is private, skipping...")
                 continue
 
@@ -274,9 +274,9 @@ proc sync(parts, options: seq[string]) =
                         log.info("command failed, skipping...")
 
                         echo fmt"song title: ({song.title})"
-                        echo song.title == "Private video"
+                        echo song.title == "[Private video]"
                         echo song.title.mapIt(ord(it))
-                        echo "Private video".mapIt(ord(it))
+                        echo "[Private video]".mapIt(ord(it))
                         continue
 
                     log.error("yt-dlp command failed! exiting...")
