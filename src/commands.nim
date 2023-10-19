@@ -217,7 +217,7 @@ proc status(parts, options: seq[string]) =
 
 proc sync(parts, options: seq[string]) =
     try:
-        if not tryReadState() or execShellCmd("yt-dlp --help") != 0:
+        if not tryReadState() or findExe("yt-dlp") == "":
             return
 
         var sources: Table[string, Source]
