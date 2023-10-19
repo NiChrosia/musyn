@@ -289,13 +289,15 @@ proc sync(parts, options: seq[string]) =
             if globalSongCount mod 10 == 0:
                 serialization.write()
 
-        i = 0
+        i = 1
 
         for song in diff.deletions:
             log.info(fmt"- ({i}/{diff.deletions.len}) {song.title}")
 
             if fileExists(sanitizedName / song.title):
                 removeFile(sanitizedName / song.title)
+
+                stateSources[name].songs.excl(song)
 
             i += 1
             globalSongCount += 1
