@@ -275,6 +275,8 @@ proc sync(parts, options: seq[string]) =
 
                         echo fmt"song title: ({song.title})"
                         echo song.title == "Private video"
+                        echo song.title.mapIt(ord(it))
+                        echo "Private video".mapIt(ord(it))
                         continue
 
                     log.error("yt-dlp command failed! exiting...")
