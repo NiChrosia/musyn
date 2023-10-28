@@ -294,8 +294,10 @@ proc sync(parts, options: seq[string]) =
             for song in diff.deletions:
                 log.info(fmt"removing ({sourceIndex + 1}:{songIndex + 1}/{sourceLen}:{delLen}) {name}/{song.title}...")
 
-                if fileExists(sanitizedName / song.title):
-                    removeFile(sanitizedName / song.title)
+                let songFile = fmt"{sanitizedName}/{song.title}.{fileType}"
+
+                if fileExists(songFile):
+                    removeFile(songFile)
 
                 stateSources[name].songs.excl(song)
 
